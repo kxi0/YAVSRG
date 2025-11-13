@@ -258,7 +258,9 @@ type FilteredSearch =
                             + " "
                             + (chart_meta.Subtitle |> Option.defaultValue "")
                             + " "
-                            + String.concat " " chart_meta.Packs)
+                            + String.concat " " chart_meta.Packs
+                            + " "
+                            + String.concat " " chart_meta.Tags)
                             .ToLowerInvariant()
 
                 Array.forall (Normalisation.NormaliseText >> s.Contains) this.SearchTerms
