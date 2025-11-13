@@ -4,6 +4,21 @@ open System
 open FParsec
 open Prelude
 open Prelude.Calculator.Patterns
+open System.Text
+
+module Normalisation =
+    let NormaliseText (input: string) =
+        if String.IsNullOrEmpty(input) then ""
+        else
+            new String(
+                input.Normalize(NormalizationForm.FormD)
+                |> Seq.filter (fun c ->
+                    not (Char.IsPunctuation c)
+                    && not (Char.IsSymbol c)
+                    && not (Char.IsControl c))
+                |> Seq.map Char.ToLowerInvariant
+                |> Seq.toArray
+            )
 
 type FilterPart =
     | Equals of string * string
@@ -234,6 +249,8 @@ type FilteredSearch =
             fun chart_meta ->
                 if not (matches_filter chart_meta) then false else
 
+                let normalised_text = Normalisation.NormaliseText chart_meta.Title
+
                 let s =
                     (chart_meta.Title
                         + " "
@@ -247,8 +264,17 @@ type FilteredSearch =
                         + " "
                         + String.concat " " chart_meta.Packs)
                         .ToLowerInvariant()
-                Array.forall (s.Contains : string -> bool) this.SearchTerms
-                && Array.forall (s.Contains >> not : string -> bool) this.SearchAntiTerms
+
+                Array.forall (fun term ->
+                    let normalisation_term = Normalisation.NormaliseText term
+                    s.Contains(term)
+                    || normalised_text.Contains(normalisation_term)
+                ) this.SearchTerms
+                && Array.forall (fun term ->
+                    let normalisation_term = Normalisation.NormaliseText term
+                    not (s.Contains(term))
+                    && not (normalised_text.Contains(normalisation_term))
+                ) this.SearchAntiTerms
 
         else matches_filter
 
