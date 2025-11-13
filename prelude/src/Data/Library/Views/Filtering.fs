@@ -249,32 +249,20 @@ type FilteredSearch =
             fun chart_meta ->
                 if not (matches_filter chart_meta) then false else
 
-                let normalised_text = Normalisation.NormaliseText chart_meta.Title
-
                 let s =
-                    (chart_meta.Title
+                    Normalisation.NormaliseText (chart_meta.Title + " " + chart_meta.DifficultyName)
                         + " "
-                        + chart_meta.Artist
-                        + " "
-                        + chart_meta.Creator
-                        + " "
-                        + chart_meta.DifficultyName
-                        + " "
-                        + (chart_meta.Subtitle |> Option.defaultValue "")
-                        + " "
-                        + String.concat " " chart_meta.Packs)
-                        .ToLowerInvariant()
+                        + (chart_meta.Artist
+                            + " "
+                            + chart_meta.Creator
+                            + " "
+                            + (chart_meta.Subtitle |> Option.defaultValue "")
+                            + " "
+                            + String.concat " " chart_meta.Packs)
+                            .ToLowerInvariant()
 
-                Array.forall (fun term ->
-                    let normalisation_term = Normalisation.NormaliseText term
-                    s.Contains(term)
-                    || normalised_text.Contains(normalisation_term)
-                ) this.SearchTerms
-                && Array.forall (fun term ->
-                    let normalisation_term = Normalisation.NormaliseText term
-                    not (s.Contains(term))
-                    && not (normalised_text.Contains(normalisation_term))
-                ) this.SearchAntiTerms
+                Array.forall (Normalisation.NormaliseText >> s.Contains) this.SearchTerms
+                && Array.forall (Normalisation.NormaliseText >> (s.Contains >> not)) this.SearchAntiTerms
 
         else matches_filter
 
