@@ -4,6 +4,21 @@ open System
 open FParsec
 open Prelude
 open Prelude.Calculator.Patterns
+open System.Text
+
+module Normalisation =
+    let NormaliseText (input: string) =
+        if String.IsNullOrEmpty(input) then ""
+        else
+            new String(
+                input.Normalize(NormalizationForm.FormD)
+                |> Seq.filter (fun c ->
+                    not (Char.IsPunctuation c)
+                    && not (Char.IsSymbol c)
+                    && not (Char.IsControl c))
+                |> Seq.map Char.ToLowerInvariant
+                |> Seq.toArray
+            )
 
 type FilterPart =
     | Equals of string * string
@@ -235,20 +250,21 @@ type FilteredSearch =
                 if not (matches_filter chart_meta) then false else
 
                 let s =
-                    (chart_meta.Title
+                    Normalisation.NormaliseText (chart_meta.Title + " " + chart_meta.DifficultyName)
                         + " "
-                        + chart_meta.Artist
-                        + " "
-                        + chart_meta.Creator
-                        + " "
-                        + chart_meta.DifficultyName
-                        + " "
-                        + (chart_meta.Subtitle |> Option.defaultValue "")
-                        + " "
-                        + String.concat " " chart_meta.Packs)
-                        .ToLowerInvariant()
-                Array.forall (s.Contains : string -> bool) this.SearchTerms
-                && Array.forall (s.Contains >> not : string -> bool) this.SearchAntiTerms
+                        + (chart_meta.Artist
+                            + " "
+                            + chart_meta.Creator
+                            + " "
+                            + (chart_meta.Subtitle |> Option.defaultValue "")
+                            + " "
+                            + String.concat " " chart_meta.Packs
+                            + " "
+                            + String.concat " " chart_meta.Tags)
+                            .ToLowerInvariant()
+
+                Array.forall (Normalisation.NormaliseText >> s.Contains) this.SearchTerms
+                && Array.forall (Normalisation.NormaliseText >> (s.Contains >> not)) this.SearchAntiTerms
 
         else matches_filter
 
