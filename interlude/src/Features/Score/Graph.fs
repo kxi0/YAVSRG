@@ -158,7 +158,33 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
     member this.ApplyColumnFilter() =
         stats.Value <- ScoreScreenStats.calculate score_info.Scoring GraphSettings.column_filter
 
-    member private this.DrawCumulativeInfo(bounds: Rect, info: GraphPoint) =
+    member private this.DrawCumulativeInfo(bounds: Rect, pre: GraphPoint, post: GraphPoint) =
+        let info =
+            if pre = post then
+                post
+            else
+                let pre_count = Array.sum pre.Judgements
+                let post_count = Array.sum post.Judgements
+                let diff_count = max 1 (post_count - pre_count)
+
+                let mean =
+                    ((post.Mean * float32 post_count) - (pre.Mean * float32 pre_count)) / float32 diff_count
+
+                let sd =
+                    let p = post.StandardDeviation
+                    let q = pre.StandardDeviation
+                    sqrt (((p*p * float32 post_count) - (q*q * float32 pre_count)) / float32 diff_count)
+
+                { post with
+                    Time = post.Time - pre.Time
+                    Combo = max 0 (post.Combo - pre.Combo)
+                    PointsScored = max 0.0 (post.PointsScored - pre.PointsScored)
+                    MaxPointsScored = max 0.0 (post.MaxPointsScored - pre.MaxPointsScored)
+                    Lamp = max 0 (post.Lamp - pre.Lamp)
+                    Judgements = Array.mapi (fun i v -> max 0 (v - pre.Judgements.[i])) post.Judgements
+                    Mean = mean
+                    StandardDeviation = sd
+                }
 
         let black_cutoff_area, white_line_x =
             if reverse_graph_info then
@@ -653,32 +679,6 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
             while snapshot_index + 1 < snapshots.Length && snapshots.[snapshot_index + 1].Time <= time do
                 snapshot_index <- snapshot_index + 1
 
-            let current_snapshot =
-                if reverse_graph_info then
-                    let pre = snapshots.[snapshot_index]
-                    let post = snapshots.[snapshots.Length - 1]
-
-                    let pre_count = Array.sum pre.Judgements
-                    let post_count = Array.sum post.Judgements
-                    let count_diff = post_count - pre_count |> max 1
-
-                    {
-                        Time = post.Time - pre.Time
-                        Combo = max 0 (post.Combo - pre.Combo)
-                        PointsScored = max 0.0 (post.PointsScored - pre.PointsScored)
-                        MaxPointsScored = max 0.0 (post.MaxPointsScored - pre.MaxPointsScored)
-                        Lamp = max 0 (post.Lamp - pre.Lamp)
-                        Judgements = Array.mapi (fun i v -> max 0 (v - pre.Judgements.[i])) post.Judgements
-                        Mean =
-                            ((post.Mean * float32 post_count) - (pre.Mean * float32 pre_count)) / float32 count_diff
-                        StandardDeviation =
-                            let post_var = post.StandardDeviation * post.StandardDeviation * float32 post_count
-                            let pre_var = pre.StandardDeviation * pre.StandardDeviation * float32 pre_count
-                            sqrt ((post_var - pre_var) / float32 count_diff)
-                    }
-                else
-                    snapshots.[snapshot_index]
-
             let box =
                 Rect.FromSize(
                     this.Bounds.Left + percent * (this.Bounds.Width - BOX_WIDTH),
@@ -690,7 +690,13 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
             if show_slice_info then
                 this.DrawSliceInfo(box, snapshot_index, int (GraphSettings.slice_size.Value * 0.5f * float32 ScoreScreenStats.GRAPH_POINT_COUNT))
             else
-                this.DrawCumulativeInfo(box, current_snapshot)
+                if reverse_graph_info then
+                    let pre = snapshots.[snapshot_index]
+                    let post = snapshots.[snapshots.Length - 1]
+                    this.DrawCumulativeInfo(box, pre, post)
+                else
+                    let s = snapshots.[snapshot_index]
+                    this.DrawCumulativeInfo(box, s, s)
 
             this.DrawLabels true
         else
