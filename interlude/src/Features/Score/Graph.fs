@@ -15,6 +15,7 @@ module GraphSettings =
     let only_releases = Setting.simple false
     let column_filter = Array.create 10 true
     let scale = 1.0f |> Setting.bounded (1.0f, 6.0f)
+    let reverse_graph_direction = Setting.simple false
     let show_slice = Setting.simple false
     let slice_size = 0.04f |> Setting.bounded (0.01f, 1.0f)
 
@@ -89,6 +90,9 @@ type ScoreGraphSettingsPage(keys: int, apply_column_filter: unit -> unit) =
                     .Pos(11),
                 PageSetting(%"score.graph.settings.windows_background", Checkbox(options.ScoreGraphWindowBackground))
                     .Pos(13),
+                PageSetting(%"score.graph.settings.reverse_direction", Checkbox(GraphSettings.reverse_graph_direction))
+                    .Help(Help.Info("score.graph.settings.reverse_direction").Hotkey(%"score.graph.settings.reverse_direction", "reverse_graph_direction"))
+                    .Pos(16),
                 PageSetting(%"score.graph.settings.hover_info",
                     SelectDropdown(
                         [|
@@ -99,10 +103,10 @@ type ScoreGraphSettingsPage(keys: int, apply_column_filter: unit -> unit) =
                     )
                 )
                     .Help(Help.Info("score.graph.settings.hover_info").Hotkey(%"score.graph.settings.hover_info_hint", "graph_alt_info"))
-                    .Pos(16),
+                    .Pos(18),
                 PageSetting(%"score.graph.settings.slice_size", Slider.Percent GraphSettings.slice_size)
                     .Help(Help.Info("score.graph.settings.slice_size"))
-                    .Pos(18)
+                    .Pos(20)
             )
 
     override this.Title = %"score.graph.settings"
@@ -114,6 +118,7 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
     let mutable refresh = true
     let mutable expanded = false
     let mutable snapshot_index = 0
+    let mutable reverse_graph_info = false
     let mutable show_slice_info = false
 
     let THICKNESS = 5f
@@ -153,16 +158,49 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
     member this.ApplyColumnFilter() =
         stats.Value <- ScoreScreenStats.calculate score_info.Scoring GraphSettings.column_filter
 
-    member private this.DrawCumulativeInfo(bounds: Rect, info: GraphPoint) =
+    member private this.DrawCumulativeInfo(bounds: Rect, pre: GraphPoint, post: GraphPoint) =
+        let info =
+            if pre = post then
+                post
+            else
+                let pre_count = Array.sum pre.Judgements
+                let post_count = Array.sum post.Judgements
+                let diff_count = max 1 (post_count - pre_count)
 
-        let black_cutoff_area = this.Bounds.SlicePercentR(1.0f - info.Time / stats.Value.GraphPoints.[stats.Value.GraphPoints.Length - 1].Time)
+                let mean =
+                    ((post.Mean * float32 post_count) - (pre.Mean * float32 pre_count)) / float32 diff_count
+
+                let sd =
+                    let p = post.StandardDeviation
+                    let q = pre.StandardDeviation
+                    sqrt (((p*p * float32 post_count) - (q*q * float32 pre_count)) / float32 diff_count)
+
+                { post with
+                    Time = post.Time - pre.Time
+                    Combo = max 0 (post.Combo - pre.Combo)
+                    PointsScored = max 0.0 (post.PointsScored - pre.PointsScored)
+                    MaxPointsScored = max 0.0 (post.MaxPointsScored - pre.MaxPointsScored)
+                    Lamp = max 0 (post.Lamp - pre.Lamp)
+                    Judgements = Array.mapi (fun i v -> max 0 (v - pre.Judgements.[i])) post.Judgements
+                    Mean = mean
+                    StandardDeviation = sd
+                }
+
+        let black_cutoff_area, white_line_x =
+            if reverse_graph_info then
+                let area = this.Bounds.SlicePercentL(1.0f - info.Time / stats.Value.GraphPoints.[stats.Value.GraphPoints.Length - 1].Time)
+                area, area.Right
+            else
+                let area = this.Bounds.SlicePercentR(1.0f - info.Time / stats.Value.GraphPoints.[stats.Value.GraphPoints.Length - 1].Time)
+                area, area.Left
+
         Render.rect black_cutoff_area Colors.black.O2
 
         let white_line =
             Rect.FromEdges(
-                black_cutoff_area.Left,
+                white_line_x,
                 bounds.Bottom,
-                black_cutoff_area.Left + Style.PADDING,
+                white_line_x + Style.PADDING,
                 this.Bounds.Bottom
             )
         Render.rect white_line Colors.white.O1
@@ -594,6 +632,11 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
                 this.Position <- if expanded then EXPANDED_POSITION else NORMAL_POSITION
                 refresh <- true
 
+            if GraphSettings.reverse_graph_direction.Value <> (%%"reverse_graph_direction").Held() then
+                reverse_graph_info <- true
+            else
+                reverse_graph_info <- false
+
             let s = Mouse.scroll()
             if GraphSettings.show_slice.Value <> (%%"graph_alt_info").Held() then
                 show_slice_info <- true
@@ -636,8 +679,6 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
             while snapshot_index + 1 < snapshots.Length && snapshots.[snapshot_index + 1].Time <= time do
                 snapshot_index <- snapshot_index + 1
 
-            let current_snapshot = snapshots.[snapshot_index]
-
             let box =
                 Rect.FromSize(
                     this.Bounds.Left + percent * (this.Bounds.Width - BOX_WIDTH),
@@ -649,7 +690,13 @@ and ScoreGraph(score_info: ScoreInfo, stats: ScoreScreenStats ref) =
             if show_slice_info then
                 this.DrawSliceInfo(box, snapshot_index, int (GraphSettings.slice_size.Value * 0.5f * float32 ScoreScreenStats.GRAPH_POINT_COUNT))
             else
-                this.DrawCumulativeInfo(box, current_snapshot)
+                if reverse_graph_info then
+                    let pre = snapshots.[snapshot_index]
+                    let post = snapshots.[snapshots.Length - 1]
+                    this.DrawCumulativeInfo(box, pre, post)
+                else
+                    let s = snapshots.[snapshot_index]
+                    this.DrawCumulativeInfo(box, s, s)
 
             this.DrawLabels true
         else
