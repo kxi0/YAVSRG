@@ -16,6 +16,7 @@ type Preview(info: LoadedChartInfo, change_rate: Rate -> unit) as this =
     let mutable playstate = playstate
     let mutable recreate_scoring = recreate_scoring
     let mutable last_time = -Time.infinity
+    let mutable seek_hold_time = 0.0f
 
     let mutable playfield =
         Playfield(info.WithColors, playstate, Content.NoteskinConfig, false).With(LanecoverOverReceptors())
@@ -104,6 +105,33 @@ type Preview(info: LoadedChartInfo, change_rate: Rate -> unit) as this =
                     Song.resume()
                 else
                     Song.seek(Song.time() - scroll * 40.0f<ms>)
+
+            let up_held = (%%"up").Held()
+            let down_held = (%%"down").Held()
+
+            if up_held || down_held then
+                seek_hold_time <- seek_hold_time + float32 elapsed_ms / 1000.0f
+            else
+                seek_hold_time <- 0.0f
+
+            let seek_multiplier = min 30.0f (3.0f + seek_hold_time * 10.0f)
+            let seek_speed = 1.0f<ms> * float32 elapsed_ms * seek_multiplier
+
+            if up_held then
+                if Song.playing() then
+                    Song.pause()
+                    Song.seek(Song.time() + seek_speed)
+                    Song.resume()
+                else
+                    Song.seek(Song.time() + seek_speed)
+
+            elif down_held then
+                if Song.playing() then
+                    Song.pause()
+                    Song.seek(Song.time() - seek_speed)
+                    Song.resume()
+                else
+                    Song.seek(Song.time() - seek_speed)
 
     override this.Close() =
         change_chart_listener.Dispose()
