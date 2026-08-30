@@ -83,9 +83,9 @@ type Preview(info: LoadedChartInfo, change_rate: Rate -> unit) as this =
         elif Screen.current_type = ScreenType.LevelSelect && (%%"previous_random_chart").Pressed() then
             LevelSelect.History.back()
         elif Screen.current_type = ScreenType.LevelSelect && (%%"next").Pressed() then
-            Tree.next()
+            Tree.next 1
         elif Screen.current_type = ScreenType.LevelSelect && (%%"previous").Pressed() then
-            Tree.previous()
+            Tree.previous 1
         elif (%%"difficulty_overlay").Pressed() then
             show_difficulty_overlay <- not show_difficulty_overlay
         elif (%%"pause").Pressed() || (%%"pause_music").Pressed() then

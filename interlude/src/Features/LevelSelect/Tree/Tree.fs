@@ -111,36 +111,45 @@ module Tree =
         LevelSelect.on_refresh_details.Add(fun () -> tree_ctx.CacheFlag <- tree_ctx.CacheFlag + 1)
         SelectedChart.on_chart_change_started.Add(fun info -> if info.ChartMeta.Hash <> tree_ctx.SelectedChart then find_selected_chart_in_tree())
 
-    let previous () : unit =
+    let previous (amount: int) : unit =
         match last_item with
         | Some l ->
             let mutable searching = true
-            let mutable last = l
+            let mutable last : ChartItem list = []
 
             for g in groups do
                 for c in g.Items do
                     if c.Selected && searching then
-                        last.Select()
+                        if last.Length >= amount then
+                            last.[amount - 1].Select()
+                        else
+                            l.Select()
                         searching <- false
                     else
-                        last <- c
+                        last <- c :: last
+                        if last.Length > amount then
+                            last <- last |> List.take amount
 
             if searching then
                 l.Select()
         | None -> ()
 
-    let next () : unit =
+    let next (amount: int) : unit =
         match last_item with
         | Some l ->
             let mutable found = false
             let mutable select_the_next_one = l.Selected
+            let mutable items_to_skip = amount - 1
 
             for g in groups do
                 for c in g.Items do
                     if select_the_next_one then
-                        c.Select()
-                        select_the_next_one <- false
-                        found <- true
+                        if items_to_skip > 0 then
+                            items_to_skip <- items_to_skip - 1
+                        else
+                            c.Select()
+                            select_the_next_one <- false
+                            found <- true
                     elif c.Selected then
                         select_the_next_one <- true
 

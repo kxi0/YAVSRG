@@ -356,6 +356,10 @@ module Input =
         events_this_frame <- f events_this_frame
         out
 
+    let pop_key_any_modifiers_press_or_repeat (key: Keys) : bool =
+        (pop_key_any_modifiers(key, InputAction.Press)).IsSome
+        || (pop_key_any_modifiers(key, InputAction.Repeat)).IsSome
+
     let pop_gameplay (now: Time) (binds: Bind array) (callback: int -> Time -> bool -> unit) : unit =
 
         let bind_match bind target =
@@ -592,6 +596,14 @@ type Bind with
         | Mouse _ ->
             Input.pop_matching(this, InputAction.Press)
             || Input.pop_matching(this, InputAction.Repeat)
+        | _ -> false
+
+    member this.PressedOrRepeatedAnyModifiers() =
+        match this with
+        | Key (key, _) ->
+            Input.pop_key_any_modifiers_press_or_repeat key
+        | Mouse _ ->
+            this.PressedOrRepeated()
         | _ -> false
 
     member this.Pressed() =

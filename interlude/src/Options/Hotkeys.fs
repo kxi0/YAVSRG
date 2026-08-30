@@ -17,6 +17,7 @@ module Hotkeys =
         Hotkeys.register "volume_down" (alt Keys.Down)
         Hotkeys.register "previous" (mk Keys.Left)
         Hotkeys.register "next" (mk Keys.Right)
+        Hotkeys.register "fast_navigate" (mk Keys.LeftShift)
         Hotkeys.register "previous_group" (mk Keys.PageUp)
         Hotkeys.register "next_group" (mk Keys.PageDown)
         Hotkeys.register "start" (mk Keys.Home)

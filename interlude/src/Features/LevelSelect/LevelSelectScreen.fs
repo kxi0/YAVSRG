@@ -23,6 +23,8 @@ type LevelSelectScreen() =
     let BULK_ACTION_BUTTON_WIDTH = 300.0f
     let OTHER_BUTTONS_WIDTH = 60.0f
 
+    let FAST_NAVIGATE_AMOUNT = 5
+
     let search_text = Setting.simple ""
 
     override this.Init(parent: Widget) =
@@ -188,10 +190,12 @@ type LevelSelectScreen() =
         if (%%"select").Pressed() then
             LevelSelect.choose_this_chart ()
 
-        elif (%%"next").PressedOrRepeated() then
-            Tree.next ()
-        elif (%%"previous").PressedOrRepeated() then
-            Tree.previous ()
+        elif (%%"next").PressedOrRepeatedAnyModifiers() then
+            let amount = if (%%"fast_navigate").Held() then FAST_NAVIGATE_AMOUNT else 1
+            Tree.next amount
+        elif (%%"previous").PressedOrRepeatedAnyModifiers() then
+            let amount = if (%%"fast_navigate").Held() then FAST_NAVIGATE_AMOUNT else 1
+            Tree.previous amount
         elif (%%"next_group").Pressed() then
             Tree.next_group ()
         elif (%%"previous_group").Pressed() then
