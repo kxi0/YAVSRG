@@ -1,1 +1,1 @@
-﻿NaN stat fix
+﻿Leaderboard bug fix

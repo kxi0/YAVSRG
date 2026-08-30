@@ -34,9 +34,9 @@ module Shared =
                 result.SkippedCharts
                 |> Seq.map (fun (path, reason) -> sprintf "%s -> %s" path reason)
                 |> String.concat "\n "
-            Logging.Info "Successful import of %i charts(s) also skipped %i file(s):\n %s" result.ConvertedCharts skipped dump
+            Logging.Info "Successful import of %i chart(s) also skipped %i file(s):\n %s" result.ConvertedCharts skipped dump
         else
-            Logging.Info "Successfully imported %i charts(s)" result.ConvertedCharts
+            Logging.Info "Successfully imported %i chart(s)" result.ConvertedCharts
 
     let private RATE_REGEX =
         Regex(
@@ -118,7 +118,7 @@ module Shared =
                 [ Error (action.Source, "Failed to parse this file") ]
 
         | ".osu" ->
-            match Beatmap.FromFile action.Source with
+            match Beatmap.TryReadFromFile action.Source with
             | Ok beatmap when beatmap.General.Mode <> Gamemode.OSU_MANIA -> []
             | Ok beatmap ->
 

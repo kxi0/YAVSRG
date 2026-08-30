@@ -4,7 +4,6 @@ open Percyqaz.Common
 open Percyqaz.Flux.Audio
 open Percyqaz.Flux.Windowing
 open Prelude
-open Prelude.Data.User.Stats
 open Interlude.Options
 open Interlude.Content
 open Interlude.Features.Gameplay
@@ -26,13 +25,12 @@ module Startup =
 
     let init (instance: int) : Screen.ScreenRoot =
         Options.init ()
-        Content.init ()
+        Content.Init ()
 
         let post_init_thunk () =
 
-            Content.load_data ()
+            Content.LoadData ()
             Printerlude.init instance
-            Stats.init Content.Library Content.UserData
             StatsSync.init ()
             SelectedChart.init ()
             Mounts.init ()
@@ -80,8 +78,7 @@ module Startup =
             deinit_once <- true
 
             if deinit_required then
-                Stats.save_current_session (Timestamp.now()) Content.UserData
-                Content.deinit ()
+                Content.Deinit ()
                 Options.deinit ()
                 Network.deinit ()
                 Printerlude.deinit ()

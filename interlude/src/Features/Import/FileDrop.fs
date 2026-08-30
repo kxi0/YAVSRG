@@ -1,17 +1,59 @@
 ﻿namespace Interlude.Features.Import
 
 open System.IO
-open System.IO.Compression
+open System.Text.RegularExpressions
 open Percyqaz.Common
 open Percyqaz.Flux.Windowing
 open Prelude
 open Prelude.Data.Library.Imports
 open Prelude.Data.OsuClientInterop
 open Prelude.Skins.Conversions
+open Prelude.Skins.Conversions.Osu
 open Interlude.UI
 open Interlude.Content
+open Interlude.Features.Import.Etterna
+open Interlude.Features.Import.Osu
 
 module FileDrop =
+    
+    let import_stepmania_noteskin (path: string) : unit =
+        let id = Regex("[^a-zA-Z0-9_-]").Replace(Path.GetFileName(path), "")
+        let timestamp = "-" + System.DateTime.Now.ToString("ddMMyyyyHHmmss")
+
+        let existing_id = Skins.list_noteskins() |> Seq.map (fun (id, _, _) -> id) |> Seq.tryFind (fun x -> x.StartsWith id)
+        ImportEtternaNoteskinPage(
+            path,
+            id + timestamp,
+            existing_id
+        )
+            .Show()
+            
+    let show_import_osu_skin_dialog(conversion: OsuSkinConversion, id: string) : unit =
+        let timestamp = "-" + System.DateTime.Now.ToString("ddMMyyyyHHmmss")
+        
+        let existing_id =
+            Skins.list_noteskins()
+            |> Seq.map (fun (id, _, _) -> id)
+            |> Seq.tryFind _.StartsWith(id)
+            
+        ImportOsuNoteskinPage(conversion, id + timestamp, existing_id)
+            .Show()
+            
+    let import_osu_skin_folder (path: string) : unit =
+        let id = Regex("[^a-zA-Z0-9_-]").Replace(Path.GetFileName(path), "")
+        match OsuSkinConversion.PrepareToConvertFolder(path) with
+        | Ok conversion -> show_import_osu_skin_dialog(conversion, id)
+        | Error err ->
+            Logging.Error "Error while parsing osu! skin.ini: %O" err
+            Notifications.error(%"notification.skin_ini_parse_failed.title", %"notification.skin_ini_parse_failed.body")
+            
+    let import_osu_skin_zip (path: string) : unit =
+        let id = Regex("[^a-zA-Z0-9_-]").Replace(Path.GetFileNameWithoutExtension(path), "")
+        match OsuSkinConversion.PrepareToConvertZipArchive(path) with
+        | Ok conversion -> show_import_osu_skin_dialog(conversion, id)
+        | Error err ->
+            Logging.Error "Error while parsing osu! skin.ini: %O" err
+            Notifications.error(%"notification.skin_ini_parse_failed.title", %"notification.skin_ini_parse_failed.body")
 
     let handle (path: string) : unit =
         assert GameThread.is_game_thread()
@@ -19,11 +61,11 @@ module FileDrop =
         match path with
         | OsuSkinFolder ->
             Menu.Exit()
-            osu.Skins.import_osu_skin path
+            import_osu_skin_folder(path)
 
         | StepmaniaNoteskinFolder ->
             Menu.Exit()
-            Etterna.Skins.import_stepmania_noteskin path
+            import_stepmania_noteskin(path)
 
         | InterludeSkinArchive ->
             try
@@ -33,34 +75,27 @@ module FileDrop =
                 Logging.Error "Error moving/importing dropped skin: %O" err
 
         | OsuSkinArchive ->
-            let id = Path.GetFileNameWithoutExtension(path)
-            let target = Path.Combine(get_game_folder "Downloads", id)
-            try
-                Directory.Delete(target, true)
-                ZipFile.ExtractToDirectory(path, target)
-            with _ -> ()
             Menu.Exit()
-            osu.Skins.import_osu_skin target
-            // todo: clean up extracted noteskin in downloads
+            import_osu_skin_zip(path)
 
         | _ when Path.GetExtension(path).ToLower() = ".osr" ->
-            match OsuReplay.TryReadFile path with
+            match OsuReplay.TryReadFile(path) with
             | Some replay ->
                 if Screen.current_type = ScreenType.LevelSelect || Screen.current_type = ScreenType.MainMenu then
-                    osu.Replay.figure_out_replay replay
+                    Replay.figure_out_replay(replay)
                 else
                     Notifications.error(%"osu_replay_import.failed", %"osu_replay_import.wrong_menu")
-            | None -> Notifications.error (%"notification.import_failed", "")
+            | None -> Notifications.error(%"notification.import_failed", "")
 
         | Unknown -> // Treat it as a chart/pack/library import
 
-            if Directory.Exists path && Path.GetFileName path = "Songs" then
+            if Directory.Exists(path) && Path.GetFileName(path) = "Songs" then
                 Menu.Exit()
                 ConfirmUnlinkedImportPage(path).Show()
             else
 
-            let task_tracking = TaskTracking.add (Path.GetFileName path)
-            let task = Imports.auto_detect_import(path, Content.Charts, Content.UserData, task_tracking.set_Progress)
+            let task_tracking = TaskTracking.add(Path.GetFileName(path))
+            let task = Imports.auto_detect_import(path, Content.Library, task_tracking.set_Progress)
             import_queue.Request(task,
                 function
                 | Ok result ->

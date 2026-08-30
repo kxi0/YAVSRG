@@ -1,14 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-	  <TargetFramework>net9.0</TargetFramework>
-
-	  <IsPackable>false</IsPackable>
-	  <GenerateProgramFile>false</GenerateProgramFile>
-	  <IsTestProject>true</IsTestProject>
+    <TargetFramework>net9.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-
   <ItemGroup>
+    <None Include="Data\Osz\2089086 The Living Tombstone - My Ordinary Life (Speed up Ver.).osz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Osz\989392 DJ Sharpnel - World Sound.osz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Data\Camellia - Backbeat Maniac (Evening) [Rewind VIP].osu">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -30,58 +33,63 @@
     <None Include="Data\Lylcaruis - Cardboard Box - He He He [SPEEEDDD!!!] (2023-09-29) OsuMania.osr">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Data\2089086 The Living Tombstone - My Ordinary Life (Speed up Ver.).osz">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <Content Include="Data\989392 DJ Sharpnel - World Sound.osz">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Compile Include="Localisation\Helpers.fs" />
-    <Compile Include="Localisation\Localisation.fs" />
-    <Compile Include="Charts\Helpers.fs" />
-    <Compile Include="Charts\Charts.fs" />
-    <Compile Include="Charts\Origins.fs" />
-    <Compile Include="Charts\Conversions.fs" />
-    <Compile Include="Charts\RateDetection.fs" />
-    <Compile Include="Calculator\HoldCoverage.fs" />
-    <Compile Include="Calculator\Color.fs" />
-    <Compile Include="Mods\Implementation.fs" />
-    <Compile Include="Mods\State.fs" />
-    <Compile Include="Replays\Replays.fs" />
-    <Compile Include="Rulesets\Editing.fs" />
-    <Compile Include="Rulesets\Helpers.fs" />
-    <Compile Include="Rulesets\Validation.fs" />
-    <Compile Include="Rulesets\Lamps.fs" />
-    <Compile Include="Rulesets\Grades.fs" />
-    <Compile Include="Rulesets\Events.fs" />
-    <Compile Include="Rulesets\Scoring.fs" />
-    <Compile Include="Rulesets\Graph.fs" />
-    <Compile Include="Rulesets\OsuParity.fs" />
-    <Compile Include="Rulesets\QuaverParity.fs" />
-    <Compile Include="Skins\Conversions\Parser.fs" />
-    <Compile Include="Skins\Noteskins\Helpers.fs" />
-    <Compile Include="Skins\Noteskins\Validation.fs" />
-    <Compile Include="Database\Helpers.fs" />
-    <Compile Include="Database\UserDatabase.fs" />
-    <Compile Include="Database\DbScores.fs" />
-    <Compile Include="Database\DbChartData.fs" />
-    <Compile Include="Database\DbSingletons.fs" />
-    <Compile Include="Database\DbSessions.fs" />
-    <Compile Include="Database\DbCharts.fs" />
-    <Compile Include="Stats\Stats.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="Helpers\ChartFuzzer.fs" />
+    <Compile Include="Helpers\NotesBuilder.fs" />
+    <Compile Include="Helpers\ReplayBuilder.fs" />
+    <Compile Include="Helpers\GameplayEventCollector.fs" />
+    <Compile Include="Helpers\ScoringEventCollector.fs" />
+    <Compile Include="Helpers\VirtualLocaleFileSystem.fs" />
+    <Compile Include="Helpers\VirtualAssetStorage.fs" />
+    <Compile Include="Helpers\VirtualClock.fs" />
+    <Compile Include="Helpers\VirtualNoteskinBuilder.fs" />
+    <Compile Include="Helpers\VirtualOsuSkinFileSystem.fs" />
+    <Compile Include="Shared\BitmaskTests.fs" />
+    <Compile Include="Shared\LocalisationTests.fs" />
+    <Compile Include="Charts\ChartTests.fs" />
+    <Compile Include="Charts\ChartOriginTests.fs" />
+    <Compile Include="Charts\ChartConversionTests.fs" />
+    <Compile Include="Charts\ChartRateDetectionTests.fs" />
+    <Compile Include="Formats\OsuBeatmapTests.fs" />
+    <Compile Include="Calculator\HoldCoverageTests.fs" />
+    <Compile Include="Calculator\DiffCalcColorTests.fs" />
+    <Compile Include="Mods\MirrorTests.fs" />
+    <Compile Include="Mods\ColumnSwapTests.fs" />
+    <Compile Include="Mods\InverseTests.fs" />
+    <Compile Include="Mods\ModStateTests.fs" />
+    <Compile Include="Replays\ReplayTests.fs" />
+    <Compile Include="Rulesets\RulesetEditingTests.fs" />
+    <Compile Include="Rulesets\RulesetValidationTests.fs" />
+    <Compile Include="Rulesets\LampTests.fs" />
+    <Compile Include="Rulesets\GradeTests.fs" />
+    <Compile Include="Rulesets\GameplayEventProcessorTests.fs" />
+    <Compile Include="Rulesets\ScoreProcessorTests.fs" />
+    <Compile Include="Rulesets\ScoreScreenStatsTests.fs" />
+    <Compile Include="Rulesets\RulesetOsuParityTests.fs" />
+    <Compile Include="Rulesets\RulesetQuaverParityTests.fs" />
+    <Compile Include="Skins\Conversions\SkinIniParserTests.fs" />
+    <Compile Include="Skins\Conversions\OsuSkinFileSystemTests.fs" />
+    <Compile Include="Skins\Conversions\LoadedTextureTests.fs" />
+    <Compile Include="Skins\Noteskins\NoteskinValidationTests.fs" />
+    <Compile Include="Database\InMemoryDatabase.fs" />
+    <Compile Include="Database\UserDatabaseTests.fs" />
+    <Compile Include="Database\DbScoresTests.fs" />
+    <Compile Include="Database\DbChartDataTests.fs" />
+    <Compile Include="Database\DbSingletonsTests.fs" />
+    <Compile Include="Database\DbSessionsTests.fs" />
+    <Compile Include="Database\DbChartsTests.fs" />
+    <Compile Include="Database\ChartDatabaseTests.fs" />
+    <Compile Include="Stats\StatsHelpersTests.fs" />
+    <Compile Include="Stats\StatsTests.fs" />
+    <Compile Include="Setup.fs" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\src\Prelude.fsproj" />
   </ItemGroup>
-
   <ItemGroup>
-	<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
-	<PackageReference Include="NUnit" Version="3.13.3" />
-	<PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
-	<PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
-	<PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
-
 </Project>

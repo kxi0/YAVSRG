@@ -65,11 +65,12 @@ module SelectedChart =
         let notes, lnotes = Chart.notecount chart
         let hold_count =
             let pc = (100.0f * float32 lnotes / float32 notes)
+            let lnotes_suffix = if lnotes <> 1 then %"levelselect.holds" else %"levelselect.hold"
 
             if pc < 0.5f then
-                sprintf "%i %s" lnotes %"levelselect.holds"
+                sprintf "%i %s" lnotes lnotes_suffix
             else
-                sprintf "%.0f%% %s" pc %"levelselect.holds"
+                sprintf "%i %s (%.0f%%)" lnotes lnotes_suffix pc
 
         sprintf "%iK | %i %s | %s" chart.Keys notes %"levelselect.notes" hold_count
 
@@ -132,7 +133,7 @@ module SelectedChart =
                 match req with
                 | Load(chart_meta, play_audio, rate, mods) ->
                     seq {
-                        match ChartDatabase.get_chart chart_meta.Hash Content.Charts with
+                        match Content.Charts.GetChart(chart_meta.Hash) with
                         | Error reason ->
 
                             Logging.Error "Couldn't load chart: %s" reason
@@ -151,7 +152,7 @@ module SelectedChart =
                         | Ok chart ->
 
                         Background.load chart_meta.Background.Path
-                        let save_data = UserDatabase.get_chart_data chart_meta.Hash Content.UserData
+                        let save_data = Content.UserData.GetChartData(chart_meta.Hash)
 
                         yield
                             fun () ->
@@ -178,7 +179,7 @@ module SelectedChart =
                         let with_mods = ModState.apply mods chart
                         let with_colors = NoteColors.apply Content.NoteskinConfig.NoteColors with_mods
 
-                        let rating = Difficulty.calculate(rate, with_mods.Notes)
+                        let rating = Difficulty.calculate(rate, with_mods.ToNoteData())
                         let patterns = PatternReport.from_chart(rating, with_mods.AsChart)
 
                         let note_counts = format_notecounts with_mods
@@ -211,7 +212,7 @@ module SelectedChart =
                         let with_mods = ModState.apply mods chart
                         let with_colors = NoteColors.apply Content.NoteskinConfig.NoteColors with_mods
 
-                        let rating = Difficulty.calculate(rate, with_mods.Notes)
+                        let rating = Difficulty.calculate(rate, with_mods.ToNoteData())
 
                         let note_counts = format_notecounts with_mods
                         let patterns = PatternReport.from_chart(rating, with_mods.AsChart)
@@ -412,7 +413,7 @@ module SelectedChart =
 
     let init () =
 
-        match ChartDatabase.get_meta options.CurrentChart.Value Content.Charts with
+        match Content.Charts.GetChartMeta(options.CurrentChart.Value) with
         | Some chart_meta -> change (chart_meta, LibraryContext.None, true)
         | None ->
             match
@@ -423,7 +424,6 @@ module SelectedChart =
                         RulesetId = Rulesets.current_hash
                         Ruleset = Rulesets.current
                         Library = Content.Library
-                        UserDatabase = Content.UserData
                     }
             with
             | Some chart_meta -> change (chart_meta, LibraryContext.None, true)

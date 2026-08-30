@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net9.0</TargetFramework>
@@ -10,27 +9,34 @@
     <PackageProjectUrl>https://github.com/YAVSRG/YAVSRG</PackageProjectUrl>
     <RepositoryUrl>https://github.com/YAVSRG/YAVSRG</RepositoryUrl>
   </PropertyGroup>
-
   <PropertyGroup>
     <Optimize>True</Optimize>
     <Tailcalls>True</Tailcalls>
-	<NoWarn>NU1903,NU1902</NoWarn>
+    <NoWarn>NU1903,NU1902</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
-    <Compile Include="Common.fs" />
-    <Compile Include="Localisation.fs" />
-    <Compile Include="Random.fs" />
-    <Compile Include="Types.fs" />
-    <Compile Include="Chart.fs" />
-    <Compile Include="Imports.fs" />
+    <Compile Include="Shared\Helpers.fs" />
+    <Compile Include="Shared\Color.fs" />
+    <Compile Include="Shared\Bitmap.fs" />
+    <Compile Include="Shared\Json.fs" />
+    <Compile Include="Shared\Localisation.fs" />
+    <Compile Include="Shared\PseudoRandom.fs" />
+    <Compile Include="Shared\Bitmask.fs" />
+    <Compile Include="Shared\Units.fs" />
+    <Compile Include="Shared\TimeArray.fs" />
+    <Compile Include="Charts\NoteRow.fs" />
+    <Compile Include="Charts\Chart.fs" />
+    <Compile Include="Charts\Imports.fs" />
     <Compile Include="Formats\Conversions.fs" />
-    <Compile Include="Formats\osu!\Shared.fs" />
+    <Compile Include="Formats\osu!\ParsedValue.fs" />
+    <Compile Include="Formats\osu!\MapHelpers.fs" />
+    <Compile Include="Formats\osu!\SampleSet.fs" />
+    <Compile Include="Formats\osu!\TimingPoint.fs" />
+    <Compile Include="Formats\osu!\HitSample.fs" />
+    <Compile Include="Formats\osu!\HitObject.fs" />
     <Compile Include="Formats\osu!\Headers.fs" />
-    <Compile Include="Formats\osu!\HitObjects.fs" />
-    <Compile Include="Formats\osu!\TimingPoints.fs" />
-    <Compile Include="Formats\osu!\Events.fs" />
-    <Compile Include="Formats\osu!\Parser.fs" />
+    <Compile Include="Formats\osu!\StoryboardEvent.fs" />
+    <Compile Include="Formats\osu!\Beatmap.fs" />
     <Compile Include="Formats\osu!\Converter.fs" />
     <Compile Include="Formats\StepMania\Types.fs" />
     <Compile Include="Formats\StepMania\Parser.fs" />
@@ -48,28 +54,31 @@
     <Compile Include="Mods\Randomise.fs" />
     <Compile Include="Mods\Mods.fs" />
     <Compile Include="Mods\ModState.fs" />
-    <Compile Include="Gameplay\Replays\ReplayFormat.fs" />
-    <Compile Include="Gameplay\Replays\IReplay.fs" />
-    <Compile Include="Gameplay\Replays\StoredReplay.fs" />
-    <Compile Include="Gameplay\Replays\LiveReplay.fs" />
-    <Compile Include="Gameplay\Replays\OnlineReplay.fs" />
+    <Compile Include="Gameplay\Replays\Replay.fs" />
+    <Compile Include="Gameplay\Replays\Autoplay.fs" />
+    <Compile Include="Gameplay\Replays\WavyAutoplay.fs" />
+    <Compile Include="Gameplay\Replays\ReplaySource.fs" />
+    <Compile Include="Gameplay\Replays\StoredReplaySource.fs" />
+    <Compile Include="Gameplay\Replays\GameplayReplaySource.fs" />
+    <Compile Include="Gameplay\Replays\NetworkReplaySource.fs" />
+    <Compile Include="Gameplay\Replays\KeyPressReader.fs" />
     <Compile Include="Gameplay\Rulesets\Rulesets.fs" />
     <Compile Include="Gameplay\Rulesets\SC.fs" />
     <Compile Include="Gameplay\Rulesets\osu!mania.fs" />
     <Compile Include="Gameplay\Rulesets\Quaver.fs" />
     <Compile Include="Gameplay\Rulesets\Wife3.fs" />
-    <Compile Include="Gameplay\Scoring\WifeCurve.fs" />
+    <Compile Include="Gameplay\Rulesets\WifeCurve.fs" />
     <Compile Include="Gameplay\Rulesets\Compare.fs" />
     <Compile Include="Gameplay\Rulesets\Helpers.fs" />
     <Compile Include="Gameplay\Scoring\Grades.fs" />
     <Compile Include="Gameplay\Scoring\Lamps.fs" />
-    <Compile Include="Gameplay\Scoring\HitMechanics.fs" />
-    <Compile Include="Gameplay\Scoring\Events.fs" />
     <Compile Include="Gameplay\Scoring\OsuHolds.fs" />
-    <Compile Include="Gameplay\Scoring\Scoring.fs" />
-    <Compile Include="Gameplay\Scoring\Graph.fs" />
-    <Compile Include="Calculator\Utils.fs" />
-    <Compile Include="Calculator\Notes.fs" />
+    <Compile Include="Gameplay\Scoring\HitMechanics.fs" />
+    <Compile Include="Gameplay\Scoring\GameplayEventProcessor.fs" />
+    <Compile Include="Gameplay\Scoring\ScoreProcessor.fs" />
+    <Compile Include="Gameplay\Scoring\ScoreScreenStats.fs" />
+    <Compile Include="Calculator\Layout.fs" />
+    <Compile Include="Calculator\NoteDifficulty.fs" />
     <Compile Include="Calculator\Variety.fs" />
     <Compile Include="Calculator\HoldCoverage.fs" />
     <Compile Include="Calculator\Strain.fs" />
@@ -84,9 +93,6 @@
     <Compile Include="Calculator\Patterns\Summary.fs" />
     <Compile Include="Calculator\Patterns\PatternInfo.fs" />
     <Compile Include="Calculator\Patterns\LibraryPatternInfo.fs" />
-    <Compile Include="Calculator\Skillsets\PatternStats.fs" />
-    <Compile Include="Calculator\Skillsets\CombinedStats.fs" />
-    <Compile Include="Calculator\Skillsets\Skillsets.fs" />
     <Compile Include="Skins\Storage.fs" />
     <Compile Include="Skins\Themes.fs" />
     <Compile Include="Skins\HUD\Config.fs" />
@@ -98,25 +104,48 @@
     <Compile Include="Skins\Repo.fs" />
     <Compile Include="Skins\Conversions\Helpers.fs" />
     <Compile Include="Skins\Conversions\osu!\Parser.fs" />
-    <Compile Include="Skins\Conversions\osu!\Textures.fs" />
-    <Compile Include="Skins\Conversions\osu!\Converter.fs" />
+    <Compile Include="Skins\Conversions\osu!\OsuSkinFileSystem.fs" />
+    <Compile Include="Skins\Conversions\osu!\LoadedTexture.fs" />
+    <Compile Include="Skins\Conversions\osu!\TextureSearchResult.fs" />
+    <Compile Include="Skins\Conversions\osu!\TextureAnimationSearchResult.fs" />
+    <Compile Include="Skins\Conversions\osu!\ImageOperations.fs" />
+    <Compile Include="Skins\Conversions\osu!\HUD\HudConverterContext.fs" />
+    <Compile Include="Skins\Conversions\osu!\HUD\HudJudgementConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\HUD\HudFontConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\HUD\HudConfigConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\HUD\HudConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\NoteskinConverterContext.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\NotesConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\ReceptorsConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\JudgementLineConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\StageConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\ColumnLightingConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\ExplosionsConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\NoteskinConfigConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\Noteskins\NoteskinConverter.fs" />
+    <Compile Include="Skins\Conversions\osu!\OsuSkinConversion.fs" />
     <Compile Include="Skins\Conversions\StepMania\Converter.fs" />
     <Compile Include="Backbeat\Tables.fs" />
     <Compile Include="Backbeat\Archive.fs" />
     <Compile Include="Data\TaskProgress.fs" />
-    <Compile Include="Data\Web.fs" />
-    <Compile Include="Data\Images.fs" />
-    <Compile Include="Data\Library\Headers.fs" />
-    <Compile Include="Data\User\Scores.fs" />
-    <Compile Include="Data\User\ScoreInfo.fs" />
-    <Compile Include="Data\User\PersonalBests.fs" />
-    <Compile Include="Data\User\Charts.fs" />
-    <Compile Include="Data\User\Singletons.fs" />
-    <Compile Include="Data\User\Sessions.fs" />
-    <Compile Include="Data\User\UserDatabase.fs" />
-    <Compile Include="Data\Library\Charts.fs" />
-    <Compile Include="Data\Library\ChartDatabase.fs" />
-    <Compile Include="Data\Library\Collections.fs" />
+    <Compile Include="Data\WebServices.fs" />
+    <Compile Include="Data\ImageServices.fs" />
+    <Compile Include="Data\ChartDatabase\AssetStorage.fs" />
+    <Compile Include="Data\ChartDatabase\ChartMeta.fs" />
+    <Compile Include="Data\ChartDatabase\DbCharts.fs" />
+    <Compile Include="Data\ChartDatabase\ChartDatabaseMigrations.fs" />
+    <Compile Include="Data\ChartDatabase\ChartDatabase.fs" />
+    <Compile Include="Data\UserDatabase\Score.fs" />
+    <Compile Include="Data\UserDatabase\Session.fs" />
+    <Compile Include="Data\UserDatabase\ScoreInfo.fs" />
+    <Compile Include="Data\UserDatabase\PersonalBests.fs" />
+    <Compile Include="Data\UserDatabase\Collections.fs" />
+    <Compile Include="Data\UserDatabase\DbScores.fs" />
+    <Compile Include="Data\UserDatabase\DbChartData.fs" />
+    <Compile Include="Data\UserDatabase\DbSingletons.fs" />
+    <Compile Include="Data\UserDatabase\DbSessions.fs" />
+    <Compile Include="Data\UserDatabase\UserDatabaseMigrations.fs" />
+    <Compile Include="Data\UserDatabase\UserDatabase.fs" />
     <Compile Include="Data\Library\Library.fs" />
     <Compile Include="Data\Library\Views\Shared.fs" />
     <Compile Include="Data\Library\Views\Filtering.fs" />
@@ -124,16 +153,17 @@
     <Compile Include="Data\Library\Imports\Shared.fs" />
     <Compile Include="Data\Library\Imports\FileSystem.fs" />
     <Compile Include="Data\Library\Imports\Mounts.fs" />
-    <Compile Include="Data\Library\Imports\Online.fs" />
+    <Compile Include="Data\Library\Imports\OnlineImports.fs" />
     <Compile Include="Data\Library\Exports.fs" />
     <Compile Include="Data\Library\Views\Grouping.fs" />
     <Compile Include="Data\Library\Views\Views.fs" />
     <Compile Include="Data\Library\Endless.fs" />
-    <Compile Include="Data\User\Stats\Helpers.fs" />
-    <Compile Include="Data\User\Stats\State.fs" />
-    <Compile Include="Data\User\Stats\Sync.fs" />
-    <Compile Include="Data\User\Stats\Migration.fs" />
-    <Compile Include="Data\User\Stats\Stats.fs" />
+    <Compile Include="Data\Stats\StatsHelpers.fs" />
+    <Compile Include="Data\Stats\Clock.fs" />
+    <Compile Include="Data\Stats\CurrentSession.fs" />
+    <Compile Include="Data\Stats\TotalStats.fs" />
+    <Compile Include="Data\Stats\Stats.fs" />
+    <Compile Include="Data\Stats\StatsSync.fs" />
     <Compile Include="Data\Maintenance\Patterns.fs" />
     <Compile Include="Data\Maintenance\Vacuum.fs" />
     <Compile Include="Data\Maintenance\PersonalBests.fs" />
@@ -141,21 +171,17 @@
     <Compile Include="Data\OsuClientInterop\Replays.fs" />
     <Compile Include="Data\OsuClientInterop\Scores.fs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="FParsec" Version="1.1.1" />
     <PackageReference Include="LZMA-SDK" Version="22.1.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\libraries\Percyqaz.Common\src\Percyqaz.Common.fsproj" />
     <ProjectReference Include="..\..\libraries\Percyqaz.Data\src\Percyqaz.Data.fsproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="9.0.201" />
   </ItemGroup>
-
 </Project>

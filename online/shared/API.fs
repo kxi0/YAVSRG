@@ -41,12 +41,14 @@ module API =
         | POST
         | DELETE
 
+    type Route = HttpMethod * string
+
     type Config =
         {
             Port: int
             SSLContext: SslContext
             Handle_Request:
-                HttpMethod * string * string * Map<string, string array> * Map<string, string> * HttpResponse
+                Route * string * Map<string, string array> * Map<string, string> * HttpResponse
                     -> Async<unit>
         }
 
@@ -70,7 +72,7 @@ module API =
             let headers =
                 seq {
                     for i = 0 to int request.Headers - 1 do
-                        let struct (key, value) = request.Header i in (key, value)
+                        let struct (key, value) = request.Header i in (key.ToLower(), value)
                 }
                 |> Map.ofSeq
 
@@ -78,13 +80,13 @@ module API =
                 let before = Stopwatch.GetTimestamp()
                 match request.Method with
                 | "GET" ->
-                    config.Handle_Request(GET, uri.AbsolutePath, request.Body, query_params, headers, this.Response)
+                    config.Handle_Request((GET, uri.AbsolutePath), request.Body, query_params, headers, this.Response)
                     |> Async.RunSynchronously
                 | "DELETE" ->
-                    config.Handle_Request(DELETE, uri.AbsolutePath, request.Body, query_params, headers, this.Response)
+                    config.Handle_Request((DELETE, uri.AbsolutePath), request.Body, query_params, headers, this.Response)
                     |> Async.RunSynchronously
                 | "POST" ->
-                    config.Handle_Request(POST, uri.AbsolutePath, request.Body, query_params, headers, this.Response)
+                    config.Handle_Request((POST, uri.AbsolutePath), request.Body, query_params, headers, this.Response)
                     |> Async.RunSynchronously
                 | _ -> this.Response.ReplyError(404, "Not found")
 
